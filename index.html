@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HONESTY BOX - Your Local Farm Directory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fff9f0;
+      color: #333;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background-color: #6c8a4d;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    header h1 { margin: 0; font-size: 1.8em; }
+
+    header a {
+      text-decoration: none;
+      color: white;
+      background-color: #a2c180;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+
+    header a:hover { background-color: #8fb36f; }
+
+    .intro {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .intro h2 { font-size: 1.6em; margin-bottom: 20px; }
+
+    .intro p {
+      font-size: 1.2em;
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    #map { height: 70vh; width: 100%; }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #6c8a4d;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>HONESTY BOX</h1>
+    <a href="login.html">Farmer Login</a>
+  </header>
+
+  <section class="intro">
+    <h2>Welcome to Honesty Box</h2>
+    <p>Your local farm directory. Find nearby farms selling fresh produce, meat, eggs, and more. Support local farmers and eat honest, wholesome food directly from the source.</p>
+  </section>
+
+  <div id="map"></div>
+
+  <footer>
+    &copy; 2025 Honesty Box. Supporting local farms across the UK.
+  </footer>
+
+  <!-- Inline JavaScript for Google Maps and farm markers -->
+  <script>
+    window.initMap = function() {
+      const ukCenter = { lat: 55.3781, lng: -3.4360 };
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 6,
+        center: ukCenter,
+        mapId : "57cc8c046e406c329a6327d6"
+      });
+
+      const farms = [
+        { name: "Sunny Fields Farm", type: "Vegetables & Eggs", position: { lat: 51.5074, lng: -0.1278 }, contact: "mailto:sunnyfields@example.com" },
+        { name: "Green Pastures", type: "Dairy & Meat", position: { lat: 53.4808, lng: -2.2426 }, contact: "mailto:greenpastures@example.com" },
+        { name: "Old Oak Farm", type: "Mixed Produce", position: { lat: 55.9533, lng: -3.1883 }, contact: "mailto:oldoak@example.com" }
+      ];
+
+
+      farms.forEach(farm => {
+      const contentDiv = document.createElement("div");
+        contentDiv.style.fontFamily = "Quicksand, sans-serif";
+        contentDiv.style.background = "#fff";
+        contentDiv.style.padding = "5px";
+        contentDiv.style.borderRadius = "5px";
+
+      const title = document.createElement("h3");
+        title.style.margin = "0";
+        title.textContent = farm.name;
+
+      const type = document.createElement("p");
+        type.style.margin = "5px 0";
+        type.textContent = `Type: ${farm.type}`;
+
+        contentDiv.appendChild(title);
+        contentDiv.appendChild(type);
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: farm.position,
+        map: map,
+        title: farm.name,
+        content: contentDiv
+      });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<div style="font-family: Quicksand, sans-serif; max-width:200px;">
+                      <h3 style="margin:0;">${farm.name}</h3>
+                      <p style="margin:5px 0;"><strong>Type:</strong> ${farm.type}</p>
+                      <a href="${farm.contact}" style="color:#6c8a4d; text-decoration:none;">Contact</a>
+                    </div>`
+        });
+
+        marker.addListener("click", () => infoWindow.open(map, marker));
+      });
+    }
+  </script>
+
+  <!-- Google Maps API (async & defer) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWppZ68PkUVSufqKpjGR3othL61q6VI5M&callback=initMap&libraries=marker" async defer></script>
+
+</body>
+</html>
+
