@@ -4,39 +4,119 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Honesty Box - Local Farm Directory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Quicksand, sans-serif; margin:0; padding:0; }
-    #map { height: 70vh; width: 100%; }
-    #auth, #addFarmForm { padding: 10px; background: #f5f5f5; }
-    input { margin: 5px; padding: 5px; }
-    button { margin: 5px; padding: 5px 10px; background:#6c8a4d; color:#fff; border:none; border-radius:3px; cursor:pointer; }
-    button:hover { background:#56703a; }
-    h1 { text-align:center; margin-top:10px; }
+
+    body { 
+        font-family: Quicksand, sans-serif; 
+        margin:0; 
+        padding:0; 
+    }
+
+    #map { 
+        height: 70vh; 
+        width: 100%;
+        align-items: center;
+
+    }
+
+    #auth, #addFarmForm { 
+        padding: 10px; 
+        background: #f5f5f5; 
+    }
+
+    input { 
+        margin: 5px; 
+        padding: 5px; 
+    }
+
+    button { 
+        margin: 10px; 
+        padding: 5px 10px; 
+        background:#6c8a4d; 
+        color:#fff; border:none; 
+        border-radius:3px; 
+        cursor:pointer; 
+    }
+
+    button:hover { 
+        background:#56703a; 
+    }
+
+    h1 { 
+        font-family: Quicksand, sans-serif;
+        text-align:center; 
+        margin-top:5px; 
+        margin-bottom:5px; 
+        padding: 20px;
+        background-color: #6c8a4d;
+        color: white;
+    }
+
+    #topBar {
+        position: absolute;
+        top: 20px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        padding: 0px 12px;
+        border-radius: 8px;
+        box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+    #topBar button {
+    margin-left: 5px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #6c8a4d;
+      color: white;
+    }
+    
   </style>
 </head>
 <body>
 
   <h1>Honesty Box - Your Local Farm Directory</h1>
 
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-    <button id="registerBtn">Register</button>
-    <button id="logoutBtn" style="display:none;">Logout</button>
-  </div>
+    <div id="topBar">
+        <button id="loginBtn">Login</button>
+        <button id="registerBtn">Register</button>
+        <button id="logoutBtn" style="display:none;">Logout</button>
+    </div>
 
   <div id="addFarmForm" style="display:none;">
     <input type="text" id="farmName" placeholder="Farm Name">
     <input type="text" id="farmType" placeholder="Type of Farm">
     <input type="text" id="farmProduce" placeholder="Produce (comma-separated)">
     <input type="text" id="farmContact" placeholder="Contact Email">
-    <input type="number" id="farmLat" placeholder="Latitude">
-    <input type="number" id="farmLng" placeholder="Longitude">
+    <input type="text" id="farmPostcode" placeholder="Postcode">
+    <input type="text" id="phoneNo" placeholder="Phone Number">
     <button id="addFarmBtn">Add Farm</button>
   </div>
 
   <div id="map"></div>
+
+  <div id="loginForm" style="display:none; padding:15px; background:#fafafa;">
+    <h3>Login</h3>
+    <input id="loginEmail" type="email" placeholder="Email">
+    <input id="loginPassword" type="password" placeholder="Password">
+    <button id="loginSubmit">Login</button>
+  </div>
+
+    <!-- Register Form -->
+  <div id="registerForm" style="display:none; padding:15px; background:#fafafa;">
+    <h3>Register</h3>
+    <input id="registerEmail" type="email" placeholder="Email">
+    <input id="registerPassword" type="password" placeholder="Password">
+    <button id="registerSubmit">Create Account</button>
+  </div>
+
+  <footer>
+    &copy; 2025 Honesty Box. Supporting local farms across the UK.
+    <p style="color: #dff5c1;">samperryinbox@gmail.com</p>
+
+  </footer>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -44,11 +124,13 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <!-- Google Maps -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWppZ68PkUVSufqKpjGR3othL61q6VI5M&callback=initMap&libraries=marker" async defer></script>
+  
 
   <script>
   window.initMap = function() {
-    const ukCenter = { lat: 55.3781, lng: -3.4360 };
+    const adminUsers = ["Tb0IUkkeyGSeje9w60erE1nCYxb2"];
+    const geocoder = new google.maps.Geocoder();
+    const ukCenter = { lat: 52, lng: -3.4360 };
     const map = new google.maps.Map(document.getElementById("map"), {
       zoom: 6,
       center: ukCenter,
@@ -76,21 +158,34 @@
     const addFarmForm = document.getElementById("addFarmForm");
     const addFarmBtn = document.getElementById("addFarmBtn");
 
-    // Login
     loginBtn.addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      auth.signInWithEmailAndPassword(email, password)
+        document.getElementById("loginForm").style.display = "block";
+        document.getElementById("registerForm").style.display = "none";
+    });
+
+        // Show register form
+    registerBtn.addEventListener("click", () => {
+        document.getElementById("registerForm").style.display = "block";
+        document.getElementById("loginForm").style.display = "none";
+    });
+
+    // Submit login
+    document.getElementById("loginSubmit").addEventListener("click", () => {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    auth.signInWithEmailAndPassword(email, password)
         .then(() => alert("Logged in!"))
         .catch(err => alert(err.message));
     });
 
-    // Register
-    registerBtn.addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => alert("Registered!"))
+    // Submit registration
+    document.getElementById("registerSubmit").addEventListener("click", () => {
+    const email = document.getElementById("registerEmail").value;
+    const password = document.getElementById("registerPassword").value;
+
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(() => alert("Account created!"))
         .catch(err => alert(err.message));
     });
 
@@ -99,66 +194,88 @@
 
     // Auth state listener
     auth.onAuthStateChanged(user => {
-      if (user) {
+    if (user) {
         loginBtn.style.display = "none";
         registerBtn.style.display = "none";
-        logoutBtn.style.display = "inline";
+        logoutBtn.style.display = "inline-block";
         addFarmForm.style.display = "block";
-      } else {
-        loginBtn.style.display = "inline";
-        registerBtn.style.display = "inline";
+    } else {
+        loginBtn.style.display = "inline-block";
+        registerBtn.style.display = "inline-block";
         logoutBtn.style.display = "none";
         addFarmForm.style.display = "none";
-      }
-      loadFarms(); // reload markers when auth changes
+    }
+
+    loadFarms(); 
     });
 
     // Add farm
     addFarmBtn.addEventListener("click", () => {
-      const farmName = document.getElementById("farmName").value;
-      const farmType = document.getElementById("farmType").value;
-      const farmProduce = document.getElementById("farmProduce").value.split(",").map(s => s.trim());
-      const farmContact = document.getElementById("farmContact").value;
-      const farmLat = parseFloat(document.getElementById("farmLat").value);
-      const farmLng = parseFloat(document.getElementById("farmLng").value);
-      const user = auth.currentUser;
+  const farmName = document.getElementById("farmName").value;
+  const farmType = document.getElementById("farmType").value;
+  const farmProduce = document.getElementById("farmProduce").value.split(",").map(s => s.trim());
+  const farmContact = document.getElementById("farmContact").value;
+  const postcode = document.getElementById("farmPostcode").value;
+  const phone = document.getElementById("phoneNo").value;
+  const user = auth.currentUser;
 
-      if (!user) return alert("Please log in first.");
+  if (!user) return alert("Please log in first.");
 
-      const farmId = addFarmBtn.dataset.editingId;
+  if (!postcode) return alert("Please enter a postcode.");
 
-      if (farmId) {
-        // Save changes
-        db.collection("farms").doc(farmId).update({
-          name: farmName,
-          type: farmType,
-          produce: farmProduce,
-          contact: farmContact,
-          lat: farmLat,
-          lng: farmLng,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          alert("Farm updated!");
-          location.reload();
-        }).catch(err => alert(err.message));
-      } else {
-        // Add new farm
-        db.collection("farms").add({
-          name: farmName,
-          type: farmType,
-          produce: farmProduce,
-          contact: farmContact,
-          lat: farmLat,
-          lng: farmLng,
-          ownerId: user.uid,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          alert("Farm added successfully!");
-          location.reload();
-        }).catch(err => alert(err.message));
-      }
-    });
+  const farmId = addFarmBtn.dataset.editingId;
+
+  // Convert postcode → lat/lng
+  geocoder.geocode({ address: postcode }, (results, status) => {
+    if (status !== "OK") {
+      alert("Unable to find that postcode. Please check it and try again.");
+      return;
+    }
+
+    const geolocation = results[0].geometry.location;
+    const lat = geolocation.lat();
+    const lng = geolocation.lng();
+
+    // Update existing farm
+    if (farmId) {
+      db.collection("farms").doc(farmId).update({
+        name: farmName,
+        type: farmType,
+        produce: farmProduce,
+        contact: farmContact,
+        lat: lat,
+        lng: lng,
+        postcode: postcode,
+        phone: phone,
+        ownerId: user.uid,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert("Farm updated!");
+        location.reload();
+      }).catch(err => alert(err.message));
+
+      return;
+    }
+
+    // Add new farm
+    db.collection("farms").add({
+      name: farmName,
+      type: farmType,
+      produce: farmProduce,
+      contact: farmContact,
+      lat: lat,
+      lng: lng,
+      postcode: postcode,
+      phone: phone,
+      ownerId: user.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      alert("Farm added successfully!");
+      location.reload();
+    }).catch(err => alert(err.message));
+  });
+});
 
     // Load farms from Firestore
     function loadFarms() {
@@ -195,14 +312,66 @@
 
           // InfoWindow
           let infoContent = `
-            <div style="font-family: Quicksand, sans-serif; max-width:220px;">
-              <h3 style="margin:0;">${farm.name}</h3>
-              <p style="margin:5px 0;"><strong>Type:</strong> ${farm.type}</p>
-              <p style="margin:5px 0;"><strong>Produce:</strong> ${farm.produce ? farm.produce.join(", ") : ""}</p>
-              <a href="mailto:${farm.contact}" style="color:#6c8a4d; text-decoration:none;">Contact</a>
+            <div style="
+                font-family: Quicksand, sans-serif;
+                max-width: 240px;
+                background: #6c8a4d;               /* Dark green border colour */
+                padding: 2px;
+                border-radius: 10px;
+                ">
+                
+              <div style="
+                  background: #8fbc6a;            /* Light green background */
+                  border-radius: 8px;
+                  padding: 12px;
+                  color: white;                   /* White text */
+                  text-align: center;">
+                
+                <h3 style="margin: 0 0 8px 0; font-size: 18px;">
+                  ${farm.name}
+                </h3>
+
+                <p style="margin: 4px 0;">
+                  <strong>Type:</strong> ${farm.type}
+                </p>
+
+                <p style="margin: 4px 0;">
+                  <strong>Produce:</strong> ${farm.produce ? farm.produce.join(", ") : ""}
+                </p>
+
+                <p style="margin: 4px 0;">
+                  <strong>Phone:</strong> ${farm.phone || "N/A"}
+                </p>
+
+                <p style="margin: 4px 0;">
+                  <strong>Email:</strong><br>${farm.contact || "N/A"}
+                </p>
+
+                <p style="margin: 4px 0;">
+                  <strong>Postcode:</strong><br>${farm.postcode || "N/A"}
+                </p>
+
+                <button onclick="copyEmail('${farm.contact}')"
+                  style="
+                    margin-top: 8px;
+                    background: #6c8a4d;            /* Dark green */
+                    color: white;
+                    border: 1px solid white;
+                    padding: 6px 12px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                  "
+                  onmouseover="this.style.background='#4e6d34'"
+                  onmouseout="this.style.background='#6c8a4d'"
+                >
+                  Copy Email
+                </button>
+              </div>
+            </div>
           `;
 
-          if (user && user.uid === farm.ownerId) {
+          if (user && (user.uid === farm.ownerId || adminUsers.includes(user.uid))) {
             infoContent += `
               <div style="margin-top:10px;">
                 <button onclick="editFarm('${farmId}')">Edit</button>
@@ -220,6 +389,13 @@
         });
       }).catch(err => console.error("Error fetching farms:", err));
     }
+
+    //Copy email
+    window.copyEmail = function(email) {
+      navigator.clipboard.writeText(email)
+        .then(() => alert("Email copied to clipboard!"))
+        .catch(() => alert("Unable to copy email."));
+    };
 
     // Delete farm
     window.deleteFarm = function(farmId) {
@@ -244,8 +420,8 @@
         document.getElementById("farmType").value = farm.type;
         document.getElementById("farmProduce").value = farm.produce.join(", ");
         document.getElementById("farmContact").value = farm.contact;
-        document.getElementById("farmLat").value = farm.lat;
-        document.getElementById("farmLng").value = farm.lng;
+        document.getElementById("farmPostcode").value = farm.postcode || "";
+        document.getElementById("phoneNo").value = farm.phone;
 
         const addBtn = document.getElementById("addFarmBtn");
         addBtn.textContent = "Save Changes";
@@ -254,6 +430,6 @@
     };
   };
   </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWppZ68PkUVSufqKpjGR3othL61q6VI5M&callback=initMap&libraries=marker" async defer></script>
 </body>
 </html>
-
